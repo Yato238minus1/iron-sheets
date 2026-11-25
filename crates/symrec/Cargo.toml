@@ -1,0 +1,14 @@
+[package]
+name = "iron-sheets-symrec"
+description = "Offline hand-drawn symbol recognizer that matches strokes against font glyph templates"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+ttf-parser = { workspace = true }
+
+[dev-dependencies]
+typst-assets = { version = "0.15", features = ["fonts"] }
+codex = "0.3.0"

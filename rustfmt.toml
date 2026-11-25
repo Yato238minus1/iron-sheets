@@ -1,0 +1,3 @@
+# House style: dense lines, as the code was written before rustfmt was adopted (2026-11-14).
+max_width = 160
+use_small_heuristics = "Max"

@@ -1,0 +1,46 @@
+[package]
+name = "iron-sheets-app-core"
+description = "Framework-free application core of iron sheets: state, commands, documents, tabs, keymap, view-models"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "iron_sheets_app_core"
+path = "src/lib.rs"
+
+[features]
+default = []
+# Typst-backed services: math renderer, shared engine in `AppState`.
+typst = ["dep:iron-sheets-typst"]
+# Typst PDF export and `@preview` package downloads (the engine's features of the same names).
+pdf = ["typst", "iron-sheets-typst/pdf"]
+typst-packages = ["typst", "iron-sheets-typst/packages"]
+# Mermaid diagrams (Settings rows only; the renderer is in the egui frontend).
+mermaid = []
+# Built-in modules that can be left out of the build (their Settings toggle goes with them).
+kanban = []
+codehl = []
+git = []
+calendar = ["dep:chrono"]
+
+[dependencies]
+iron-sheets-core = { workspace = true }
+iron-sheets-md = { workspace = true }
+iron-sheets-typst = { workspace = true, optional = true }
+open = "5"
+# Local date for daily notes; `clock` is already enabled in the tree by typst-kit and ui-egui.
+chrono = { version = "0.4.45", default-features = false, features = ["clock"], optional = true }
+regex = "1.13"
+crossbeam-channel = { workspace = true }
+parking_lot = { workspace = true }
+rustc-hash = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"
+criterion = { workspace = true }
+
+[[bench]]
+name = "app_core_bench"
+harness = false

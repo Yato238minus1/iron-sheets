@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+*.snap.new
+*.orig
+*.rej
+crates/ui-egui/assets/syntax/

@@ -1,0 +1,84 @@
+[package]
+name = "iron-sheets-ui-egui"
+description = "egui/eframe frontend of iron sheets"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "iron_sheets_ui_egui"
+path = "src/lib.rs"
+
+# Set by build.rs when assets/syntax/ contains at least one .packdump (optional, not committed).
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ['cfg(bundled_syntaxes)']
+
+[features]
+default = []
+# Typst UI: .typ preview, symbol panel, embedded fonts. Forwards to the core feature.
+typst = ["iron-sheets-app-core/typst", "dep:typst-assets", "dep:iron-sheets-typst", "dep:iron-sheets-symrec"]
+
+# PDF export of Typst notes (the Export PDF command and its dialog).
+pdf = ["typst", "iron-sheets-app-core/pdf"]
+
+# Embeds the Lilex editor font (about 440 KB, parsed only when chosen). Without it the `lilex` choice is not offered.
+font-lilex = []
+
+# Cargo-only switches, forwarded to eframe and image: Linux windowing backends, the screen-reader tree, more image formats.
+wayland = ["eframe/wayland"]
+x11 = ["eframe/x11"]
+# Lazy system fallback fonts (CJK, Arabic, ...): fontique, nothing is read before an uncovered char is laid out.
+system-fonts = ["dep:egui_system_font_provider", "dep:unicode-script"]
+accesskit = ["eframe/accesskit"]
+image-extra = ["image/gif", "image/webp", "image/bmp"]
+
+# Kanban board view, Git status/diff UI, Excalidraw viewer and embeds. Forward to the crates below.
+kanban = ["iron-sheets-app-core/kanban", "iron-sheets-md/kanban"]
+git = ["iron-sheets-app-core/git"]
+calendar = ["iron-sheets-app-core/calendar"]
+excalidraw = ["iron-sheets-core/excalidraw", "iron-sheets-md/excalidraw", "dep:resvg"]
+# Colours fenced code blocks (syntect with the two-face syntax set).
+codehl = ["iron-sheets-app-core/codehl", "dep:syntect", "dep:two-face"]
+# Mermaid diagrams as images (mermaid-rs-renderer, rasterised by resvg).
+mermaid = ["iron-sheets-app-core/mermaid", "dep:mermaid-rs-renderer", "dep:resvg"]
+
+[dependencies]
+iron-sheets-app-core = { workspace = true }
+iron-sheets-core = { workspace = true }
+iron-sheets-md = { workspace = true }
+iron-sheets-typst = { workspace = true, optional = true }
+iron-sheets-symrec = { workspace = true, optional = true }
+eframe = { version = "=0.37.0", default-features = false, features = ["glow", "default_fonts", "clipboard"] }
+egui = { version = "=0.37.0", default-features = false, features = ["default_fonts"] }
+rfd = "0.18"
+# Same version eframe's `system_fonts` feature would pull (that feature stays off: it installs its provider eagerly).
+egui_system_font_provider = { version = "=0.37.0", optional = true }
+unicode-script = { version = "0.5", optional = true }
+# Local time for pasted image names; `clock` is already enabled in the tree by typst-kit, so no new crates or features.
+chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
+image = { version = "=0.25.10", default-features = false, features = ["png", "jpeg"] }
+crossbeam-channel = { workspace = true }
+parking_lot = { workspace = true }
+rustc-hash = { workspace = true }
+# Same versions and regex backend as typst-library, so nothing is built twice.
+syntect = { version = "5.3", default-features = false, features = ["parsing", "regex-fancy", "dump-load"], optional = true }
+two-face = { version = "0.4.5", default-features = false, features = ["syntect-fancy"], optional = true }
+# Mermaid diagrams: pure-Rust SVG renderer, rasterised by resvg (same 0.47 as typst-render, so nothing is built twice).
+mermaid-rs-renderer = { version = "0.3.1", default-features = false, optional = true }
+resvg = { version = "0.47", default-features = false, features = ["text", "system-fonts", "memmap-fonts"], optional = true }
+typst-assets = { version = "=0.15.1", features = ["fonts"], optional = true }
+
+[dev-dependencies]
+unicode-script = "0.5"
+# Only for `examples/mksyntax.rs` (builds optional syntax dumps).
+syntect = { version = "5.3", default-features = false, features = ["parsing", "regex-fancy", "yaml-load", "dump-create"] }
+
+[[example]]
+name = "mksyntax"
+required-features = ["codehl"]
+
+[[example]]
+name = "syntax_licenses"
+required-features = ["codehl"]

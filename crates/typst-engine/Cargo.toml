@@ -1,0 +1,46 @@
+[package]
+name = "iron-sheets-typst"
+description = "Typst integration of iron sheets: world, compile/render workers, math snippets, symbol table, .typ highlighting"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = ["pdf", "packages"]
+# PDF export (typst-pdf pulls in krilla and friends).
+pdf = ["dep:typst-pdf"]
+# `@preview/...` packages downloaded over HTTPS (ureq, native-tls, openssl). Without it only packages already on disk resolve.
+packages = ["typst-kit/system-downloader"]
+
+[dependencies]
+typst = "=0.15.1"
+typst-syntax = "=0.15.1"
+typst-layout = "=0.15.1"
+typst-render = "=0.15.1"
+typst-ide = "=0.15.1"
+typst-assets = { version = "=0.15.1", features = ["fonts"] }
+typst-pdf = { version = "=0.15.1", optional = true }
+typst-kit = { version = "=0.15.1", features = [
+    "embedded-fonts",
+    "scan-fonts",
+    "system-packages",
+    "datetime",
+] }
+codex = "0.3.0"
+comemo = "0.5.1"
+ecow = "0.2.6"
+parking_lot = { workspace = true }
+rustc-hash = { workspace = true }
+
+[dev-dependencies]
+tiny-skia = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name = "typst_bench"
+harness = false
+
+[[example]]
+name = "typst-bench"
+path = "examples/bench.rs"

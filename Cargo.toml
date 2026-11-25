@@ -1,0 +1,331 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+publish = false
+
+# Shared dependency versions. Keep these aligned with what `typst` 0.15 already
+# pulls in (tiny-skia 0.12, resvg/usvg 0.47, fontdb 0.23, syntect 5 + two-face 0.4)
+# so nothing gets compiled twice.
+[workspace.dependencies]
+iron-sheets-core = { path = "crates/core" }
+iron-sheets-md = { path = "crates/md" }
+iron-sheets-symrec = { path = "crates/symrec" }
+iron-sheets-typst = { path = "crates/typst-engine", default-features = false }
+iron-sheets-app-core = { path = "crates/app-core" }
+iron-sheets-ui-egui = { path = "crates/ui-egui" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+postcard = { version = "1.1", default-features = false, features = ["use-std"] }
+parking_lot = "0.12"
+crossbeam-channel = "0.5"
+rayon = "1.12"
+memchr = "2.8"
+rustc-hash = "2.1"
+smallvec = "1.16"
+# Same major as typst-syntax (0.8), parse only.
+toml = { version = "0.8", default-features = false, features = ["parse"] }
+ttf-parser = "0.25"
+tiny-skia = "0.12"
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+# Day-to-day builds: our crates lightly optimised, dependencies selectively optimised
+# (`opt-level = 1` baseline, `3` for runtime-hot text/render/Typst crates, `0` for heavy non-hot/proc-macro crates).
+[profile.dev]
+opt-level = 1
+debug = "line-tables-only"
+
+# Proc-macros and build.rs helpers (syn 2/3, zbus_macros, typst-macros, serde_derive):
+[profile.dev.build-override]
+opt-level = 0
+
+# Safe fast baseline for dependencies (avoids -O3 LLVM passes on ~650 crates):
+[profile.dev.package."*"]
+opt-level = 1
+debug = false
+
+# Runtime-hot crates that must stay at opt-level = 3 in dev/tests:
+[profile.dev.package.typst]
+opt-level = 3
+[profile.dev.package.typst-eval]
+opt-level = 3
+[profile.dev.package.typst-html]
+opt-level = 3
+[profile.dev.package.typst-ide]
+opt-level = 3
+[profile.dev.package.typst-kit]
+opt-level = 3
+[profile.dev.package.typst-layout]
+opt-level = 3
+[profile.dev.package.typst-library]
+opt-level = 3
+[profile.dev.package.typst-realize]
+opt-level = 3
+[profile.dev.package.typst-render]
+opt-level = 3
+[profile.dev.package.typst-svg]
+opt-level = 3
+[profile.dev.package.typst-syntax]
+opt-level = 3
+[profile.dev.package.typst-utils]
+opt-level = 3
+[profile.dev.package.comemo]
+opt-level = 3
+[profile.dev.package.ecow]
+opt-level = 3
+[profile.dev.package.harfrust]
+opt-level = 3
+[profile.dev.package.rustybuzz]
+opt-level = 3
+[profile.dev.package.skrifa]
+opt-level = 3
+[profile.dev.package.read-fonts]
+opt-level = 3
+[profile.dev.package.ttf-parser]
+opt-level = 3
+[profile.dev.package.font-types]
+opt-level = 3
+[profile.dev.package.fontdb]
+opt-level = 3
+[profile.dev.package.resvg]
+opt-level = 3
+[profile.dev.package.usvg]
+opt-level = 3
+[profile.dev.package.tiny-skia]
+opt-level = 3
+[profile.dev.package.tiny-skia-path]
+opt-level = 3
+[profile.dev.package.vello_cpu]
+opt-level = 3
+[profile.dev.package.vello_common]
+opt-level = 3
+[profile.dev.package.fearless_simd]
+opt-level = 3
+[profile.dev.package.kurbo]
+opt-level = 3
+[profile.dev.package.pixglyph]
+opt-level = 3
+[profile.dev.package.hayro]
+opt-level = 3
+[profile.dev.package.hayro-interpret]
+opt-level = 3
+[profile.dev.package.hayro-svg]
+opt-level = 3
+[profile.dev.package.hayro-syntax]
+opt-level = 3
+[profile.dev.package.image]
+opt-level = 3
+[profile.dev.package.pic-scale]
+opt-level = 3
+[profile.dev.package.moxcms]
+opt-level = 3
+[profile.dev.package.pxfm]
+opt-level = 3
+[profile.dev.package.png]
+opt-level = 3
+[profile.dev.package.zune-jpeg]
+opt-level = 3
+[profile.dev.package.gif]
+opt-level = 3
+[profile.dev.package.image-webp]
+opt-level = 3
+[profile.dev.package.fdeflate]
+opt-level = 3
+[profile.dev.package.flate2]
+opt-level = 3
+[profile.dev.package.zlib-rs]
+opt-level = 3
+[profile.dev.package.miniz_oxide]
+opt-level = 3
+[profile.dev.package.comrak]
+opt-level = 3
+[profile.dev.package.epaint]
+opt-level = 3
+[profile.dev.package.egui]
+opt-level = 3
+[profile.dev.package.syntect]
+opt-level = 3
+[profile.dev.package.two-face]
+opt-level = 3
+[profile.dev.package.fancy-regex]
+opt-level = 3
+[profile.dev.package.regex]
+opt-level = 3
+[profile.dev.package.regex-automata]
+opt-level = 3
+[profile.dev.package.aho-corasick]
+opt-level = 3
+[profile.dev.package.memchr]
+opt-level = 3
+[profile.dev.package.rayon]
+opt-level = 3
+[profile.dev.package.rayon-core]
+opt-level = 3
+[profile.dev.package.hashbrown]
+opt-level = 3
+[profile.dev.package.rustc-hash]
+opt-level = 3
+
+# Heavy non-hot / test-only / PDF-export / IPC / windowing crates at opt-level = 0:
+[profile.dev.package.naga]
+opt-level = 0
+[profile.dev.package.naga-types]
+opt-level = 0
+[profile.dev.package.wgpu]
+opt-level = 0
+[profile.dev.package.wgpu-core]
+opt-level = 0
+[profile.dev.package.wgpu-hal]
+opt-level = 0
+[profile.dev.package.wgpu-naga-bridge]
+opt-level = 0
+[profile.dev.package.wgpu-types]
+opt-level = 0
+[profile.dev.package.egui-wgpu]
+opt-level = 0
+[profile.dev.package.egui_kittest]
+opt-level = 0
+[profile.dev.package.kittest]
+opt-level = 0
+[profile.dev.package.ash]
+opt-level = 0
+[profile.dev.package.gpu-allocator]
+opt-level = 0
+[profile.dev.package.zbus]
+opt-level = 0
+[profile.dev.package.zbus_names]
+opt-level = 0
+[profile.dev.package.zbus_xml]
+opt-level = 0
+[profile.dev.package.zbus-lockstep]
+opt-level = 0
+[profile.dev.package.zvariant]
+opt-level = 0
+[profile.dev.package.atspi]
+opt-level = 0
+[profile.dev.package.atspi-common]
+opt-level = 0
+[profile.dev.package.atspi-proxies]
+opt-level = 0
+[profile.dev.package.accesskit]
+opt-level = 0
+[profile.dev.package.accesskit_unix]
+opt-level = 0
+[profile.dev.package.accesskit_winit]
+opt-level = 0
+[profile.dev.package.accesskit_atspi_common]
+opt-level = 0
+[profile.dev.package.accesskit_consumer]
+opt-level = 0
+[profile.dev.package.x11rb]
+opt-level = 0
+[profile.dev.package.x11rb-protocol]
+opt-level = 0
+[profile.dev.package.wayland-client]
+opt-level = 0
+[profile.dev.package.wayland-backend]
+opt-level = 0
+[profile.dev.package.wayland-protocols]
+opt-level = 0
+[profile.dev.package.wayland-protocols-plasma]
+opt-level = 0
+[profile.dev.package.wayland-protocols-wlr]
+opt-level = 0
+[profile.dev.package.wayland-protocols-misc]
+opt-level = 0
+[profile.dev.package.wayland-protocols-experimental]
+opt-level = 0
+[profile.dev.package.wayland-cursor]
+opt-level = 0
+[profile.dev.package.wayland-csd-frame]
+opt-level = 0
+[profile.dev.package.smithay-client-toolkit]
+opt-level = 0
+[profile.dev.package.smithay-clipboard]
+opt-level = 0
+[profile.dev.package.winit]
+opt-level = 0
+[profile.dev.package.glutin]
+opt-level = 0
+[profile.dev.package.glutin-winit]
+opt-level = 0
+[profile.dev.package.egui-winit]
+opt-level = 0
+[profile.dev.package.egui_glow]
+opt-level = 0
+[profile.dev.package.eframe]
+opt-level = 0
+[profile.dev.package.rfd]
+opt-level = 0
+[profile.dev.package.arboard]
+opt-level = 0
+[profile.dev.package.wl-clipboard-rs]
+opt-level = 0
+[profile.dev.package.criterion]
+opt-level = 0
+[profile.dev.package.criterion-plot]
+opt-level = 0
+[profile.dev.package.clap]
+opt-level = 0
+[profile.dev.package.clap_builder]
+opt-level = 0
+[profile.dev.package.wasmi]
+opt-level = 0
+[profile.dev.package.wasmi_core]
+opt-level = 0
+[profile.dev.package.wasmi_ir]
+opt-level = 0
+[profile.dev.package.wasmi_collections]
+opt-level = 0
+[profile.dev.package.wasmparser]
+opt-level = 0
+[profile.dev.package.citationberg]
+opt-level = 0
+[profile.dev.package.hayagriva]
+opt-level = 0
+[profile.dev.package.biblatex]
+opt-level = 0
+[profile.dev.package.write-fonts]
+opt-level = 0
+[profile.dev.package.krilla]
+opt-level = 0
+[profile.dev.package.krilla-svg]
+opt-level = 0
+[profile.dev.package.pdf-writer]
+opt-level = 0
+[profile.dev.package.typst-pdf]
+opt-level = 0
+[profile.dev.package.subsetter]
+opt-level = 0
+[profile.dev.package.ureq]
+opt-level = 0
+[profile.dev.package.native-tls]
+opt-level = 0
+[profile.dev.package.openssl]
+opt-level = 0
+[profile.dev.package.async-io]
+opt-level = 0
+[profile.dev.package.async-process]
+opt-level = 0
+[profile.dev.package.async-executor]
+opt-level = 0
+[profile.dev.package.blocking]
+opt-level = 0
+[profile.dev.package.polling]
+opt-level = 0
+
+# Distribution build. Fat LTO + one codegen unit: 85.6 -> 66.3 MB, startup and Typst compiles unchanged.
+# Not used: opt-level "z" for dependencies (55.4 MB, but Typst compiles 30-50% slower) and
+# panic = "abort" (Typst, comrak and font scanning run under catch_unwind).
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
+debug = false
+

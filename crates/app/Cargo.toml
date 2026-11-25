@@ -1,0 +1,71 @@
+[package]
+name = "iron-sheets"
+description = "iron sheets: native Markdown + Typst note editor (binary; the frontend is chosen by cargo feature)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+default-run = "iron-sheets"
+
+[lib]
+name = "iron_sheets"
+path = "src/lib.rs"
+
+[[bin]]
+name = "iron-sheets"
+path = "src/main.rs"
+
+[features]
+default = ["typst", "pdf", "typst-packages", "ui-egui", "font-lilex", "kanban", "git", "excalidraw", "calendar", "mermaid", "codehl", "wayland", "x11", "accesskit", "image-extra", "system-fonts"]
+# Exactly one frontend must be selected (see `lib.rs`).
+ui-egui = ["dep:iron-sheets-ui-egui"]
+# Placeholder: no code yet (the xilem spike was no-go, see docs/plans/ui-backends.md).
+ui-xilem = []
+# Typst-backed features: math in previews, .typ preview, symbol panel, embedded fonts.
+typst = ["iron-sheets-app-core/typst", "iron-sheets-ui-egui?/typst"]
+
+# Embeds the Lilex editor font in the egui frontend (440 KB).
+font-lilex = ["iron-sheets-ui-egui?/font-lilex"]
+
+# Typst PDF export, `@preview` package downloads (both need `typst`).
+pdf = ["typst", "iron-sheets-app-core/pdf", "iron-sheets-ui-egui?/pdf"]
+typst-packages = ["typst", "iron-sheets-app-core/typst-packages"]
+
+# Colours fenced code blocks (Settings toggle).
+codehl = ["iron-sheets-app-core/codehl", "iron-sheets-ui-egui?/codehl"]
+# Mermaid diagrams as images.
+mermaid = ["iron-sheets-app-core/mermaid", "iron-sheets-ui-egui?/mermaid"]
+
+# Linux windowing backends (Windows ignores them), screen-reader tree (AccessKit), gif/webp/bmp decoding.
+wayland = ["iron-sheets-ui-egui?/wayland"]
+x11 = ["iron-sheets-ui-egui?/x11"]
+accesskit = ["iron-sheets-ui-egui?/accesskit"]
+image-extra = ["iron-sheets-ui-egui?/image-extra"]
+system-fonts = ["iron-sheets-ui-egui?/system-fonts"]
+
+# Optional features, each can be left out of the build: Kanban boards, Git status/diff, Excalidraw drawings.
+kanban = ["iron-sheets-app-core/kanban", "iron-sheets-ui-egui?/kanban"]
+git = ["iron-sheets-app-core/git", "iron-sheets-ui-egui?/git"]
+calendar = ["iron-sheets-app-core/calendar", "iron-sheets-ui-egui?/calendar"]
+excalidraw = ["iron-sheets-core/excalidraw", "iron-sheets-ui-egui?/excalidraw"]
+
+[dependencies]
+iron-sheets-core = { workspace = true }
+iron-sheets-app-core = { workspace = true }
+iron-sheets-ui-egui = { workspace = true, optional = true }
+# Align features unified by `[dev-dependencies]` (`egui_kittest` -> `wgpu` -> `naga`)
+# so `cargo test` reuses crates built by `cargo build` instead of recompiling ~213 units.
+hashbrown = { version = "0.17", default-features = false, features = ["inline-more"] }
+num-traits = { version = "0.2", default-features = false, features = ["libm"] }
+half = { version = "2", default-features = false, features = ["num-traits"] }
+
+[dev-dependencies]
+egui_kittest = { version = "=0.37.0", features = ["wgpu"] }
+egui = { version = "=0.37.0", default-features = false, features = ["default_fonts"] }
+image = { version = "=0.25.10", default-features = false, features = ["png"] }
+tempfile = "3"
+criterion = { workspace = true }
+
+[[bench]]
+name = "ui_bench"
+harness = false
